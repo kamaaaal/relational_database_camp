@@ -8,17 +8,14 @@ else
 fi
 
 # Do not change code above this line. Use the PSQL variable above to query your database.
+
 TRUNCATED=$($PSQL "truncate teams,games;");
 
- reset=$($PSQL "SELECT setval('games_game_id_seq', 1, false);")
- reset=$($PSQL "SELECT setval('teams_team_id_seq', 1, false);")
 
 cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPONENT_GOALS
   do 
     if [[ $YEAR -ne "year" ]]; then
-      # echo $PSQL "SELECT name from teams where name = '$WINNER' "
       WINNER_ID=$($PSQL "SELECT team_id from teams where name = '$WINNER' ");
-     
       if [[ -z $WINNER_ID ]]
         then
           WINNER_INSERTED=$($PSQL "INSERT INTO teams(name) VALUES('$WINNER'); ") 
@@ -26,14 +23,13 @@ cat games.csv | while IFS="," read YEAR ROUND WINNER OPPONENT WINNER_GOALS OPPON
       fi;
 
       OPPONENT_ID=$($PSQL "SELECT team_id from teams where name = '$OPPONENT' ");
-     
 
       if [[ -z $OPPONENT_ID ]]
         then
           OPPONENT_INSERTED=$($PSQL "INSERT INTO teams(name) VALUES('$OPPONENT'); ") 
           OPPONENT_ID=$($PSQL "SELECT team_id from teams where name = '$OPPONENT' ");
-
       fi;
+
       res=$($PSQL "insert into games(year,round,winner_goals,opponent_goals,winner_id,opponent_id)
                     VALUES ($YEAR,'$ROUND',$WINNER_GOALS,$OPPONENT_GOALS,$WINNER_ID,$OPPONENT_ID);
             ")
